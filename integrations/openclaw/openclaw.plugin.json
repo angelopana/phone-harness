@@ -1,0 +1,29 @@
+{
+  "id": "phone-harness",
+  "name": "Phone Harness",
+  "description": "Drive a real phone with one phone_exec tool: an iPhone through iPhone Mirroring, an Android over adb, or a cloud phone.",
+  "categories": ["computer-use"],
+  "contracts": {
+    "tools": ["phone_exec"]
+  },
+  "toolMetadata": {
+    "phone_exec": {
+      "optional": true
+    }
+  },
+  "activation": {
+    "onStartup": false
+  },
+  "skills": ["skills/phone-harness"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "command": {
+        "type": "string",
+        "default": "phone-harness",
+        "description": "The phone-harness executable to run scripts with. A name on PATH or an absolute path."
+      }
+    }
+  }
+}
