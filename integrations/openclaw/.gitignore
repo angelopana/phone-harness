@@ -1,0 +1,4 @@
+node_modules/
+dist/
+# Generated from the repo's SKILL.md by `npm run build`.
+skills/
