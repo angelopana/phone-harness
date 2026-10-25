@@ -1,9 +1,12 @@
 /**
  * phone-harness for OpenClaw: one optional `phone_exec` tool.
  *
+ * @remarks
  * The model writes a Python script; the plugin pipes it to the phone-harness
  * CLI, which runs it with the phone helpers pre-imported, and returns what it
  * printed (plus the screenshot, if one was saved). Every call asks first.
+ *
+ * @packageDocumentation
  */
 import { buildJsonPluginConfigSchema, definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 
@@ -20,11 +23,13 @@ const CONFIG_SCHEMA = {
   },
 } as const;
 
+// The `command` setting as argv, falling back to phone-harness on PATH.
 function commandFrom(pluginConfig: Record<string, unknown> | undefined): string[] {
   const command = pluginConfig?.command;
   return [typeof command === "string" && command.trim() ? command.trim() : DEFAULT_COMMAND];
 }
 
+/** The plugin entry OpenClaw loads: registers phone_exec and its approval gate. */
 export default definePluginEntry({
   id: PLUGIN_ID,
   name: "Phone Harness",

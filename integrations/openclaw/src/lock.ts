@@ -1,6 +1,14 @@
-/** One script drives the phone at a time, across agents in this gateway. */
+/**
+ * One script drives the phone at a time, across agents in this gateway.
+ *
+ * @module
+ */
 
+/** Raised when a caller waits too long for the phone. */
 export class PhoneBusyError extends Error {
+  /**
+   * @param waitMs - How long the caller waited, in milliseconds.
+   */
   constructor(waitMs: number) {
     super(`The phone is busy with another phone_exec script (waited ${Math.round(waitMs / 1000)}s). ` +
           "Try again when it finishes.");
@@ -8,11 +16,28 @@ export class PhoneBusyError extends Error {
   }
 }
 
+/** A first-come, first-served lock on the phone. */
 export class PhoneLock {
   private busy = false;
   private waiters: Array<() => void> = [];
 
-  /** Resolves to a release function, or rejects with PhoneBusyError after waitMs. */
+  /**
+   * Waits for the phone to be free and takes it.
+   *
+   * @param waitMs - The longest to wait, in milliseconds.
+   * @returns A promise resolving to a function that releases the phone.
+   * @throws {PhoneBusyError} If the phone is still taken after `waitMs`.
+   *
+   * @example
+   * ```ts
+   * const release = await lock.acquire(120_000);
+   * try {
+   *   await runScript(code, opts);
+   * } finally {
+   *   release();
+   * }
+   * ```
+   */
   acquire(waitMs: number): Promise<() => void> {
     if (!this.busy) {
       this.busy = true;

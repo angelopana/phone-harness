@@ -1,4 +1,8 @@
-/** Environment and workspace for the phone-harness child process. */
+/**
+ * Environment and workspace for the phone-harness child process.
+ *
+ * @module
+ */
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -14,14 +18,24 @@ function truthy(value: unknown): boolean {
   return Boolean(value);
 }
 
-/** config.json, using the same directory rules as phone_harness.config.config_dir. */
+// Same directory rules as phone_harness.config.config_dir.
 function configJsonPath(env: Env): string {
   if (env.PHONE_HARNESS_HOME) return join(env.PHONE_HARNESS_HOME, "config", "config.json");
   const base = env.XDG_CONFIG_HOME || join(homedir(), ".config");
   return join(base, "phone-harness", "config.json");
 }
 
-/** True only for an explicit opt-in: the env var, or `phone-harness config set telemetry true`. */
+/**
+ * Checks whether the user explicitly opted in to telemetry.
+ *
+ * @remarks
+ * Opt-in is `PHONE_HARNESS_TELEMETRY` set to an enabling value, or
+ * `phone-harness config set telemetry true`. The CLI's built-in default is
+ * not an opt-in.
+ *
+ * @param env - The environment to read `PHONE_HARNESS_*` settings from.
+ * @returns `true` only for an explicit opt-in.
+ */
 export function telemetryOptedIn(env: Env): boolean {
   if (env.PHONE_HARNESS_TELEMETRY !== undefined) return truthy(env.PHONE_HARNESS_TELEMETRY);
   try {
@@ -32,7 +46,13 @@ export function telemetryOptedIn(env: Env): boolean {
   }
 }
 
-/** An inherited PH_AGENT_WORKSPACE, else one folder under ~/.openclaw. */
+/**
+ * Picks the folder where the agent's scripts keep notes.
+ *
+ * @param env - The environment; an inherited `PH_AGENT_WORKSPACE` wins.
+ * @param home - The home directory to put the default folder under.
+ * @returns `PH_AGENT_WORKSPACE`, else `~/.openclaw/phone-harness/agent-workspace`.
+ */
 export function workspaceDir(env: Env, home: string = homedir()): string {
   const inherited = env.PH_AGENT_WORKSPACE?.trim();
   if (inherited) return inherited;
@@ -40,8 +60,16 @@ export function workspaceDir(env: Env, home: string = homedir()): string {
 }
 
 /**
- * The parent env minus *_API_KEY / *_TOKEN / *_SECRET, with PHONE_HARNESS_*
- * put back, the client and workspace set, and telemetry off unless opted in.
+ * Builds the environment for one phone-harness run.
+ *
+ * @remarks
+ * Drops `*_API_KEY`, `*_TOKEN` and `*_SECRET` variables (except
+ * `PHONE_HARNESS_*` ones), sets the client and workspace, and turns telemetry
+ * off unless the user opted in.
+ *
+ * @param base - The gateway's environment.
+ * @param workspace - The agent workspace folder.
+ * @returns A new environment; `base` is not changed.
  */
 export function childEnv(base: Env, workspace: string): Env {
   const env: Env = {};
