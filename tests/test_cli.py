@@ -184,7 +184,7 @@ class HelpAndFlags(unittest.TestCase):
         self.assertIn("42", got.stdout)
         self.assertNotIn("unrecognized arguments", got.stderr)
 
-    def test_hermes_scripts_do_not_receive_host_modules_or_path(self):
+    def test_agent_plugin_scripts_do_not_receive_host_modules_or_path(self):
         home = Path("/tmp") / "ph-hermes-globals"
         script = (
             "names = set(globals())\n"
@@ -197,13 +197,14 @@ class HelpAndFlags(unittest.TestCase):
             "PH_AGENT_WORKSPACE": str(home / "ws"),
             "PHONE_HARNESS_PLATFORM": "android",
         }
-        hermes = _run(stdin=script, env={**common, "PH_CLIENT": "hermes"})
-        self.assertEqual(hermes.returncode, 0, hermes.stderr)
-        got = dict(line.split() for line in hermes.stdout.splitlines() if line.strip())
-        for key in ("Path", "importlib", "transport", "hashlib", "time", "AGENT_WORKSPACE", "CORE_DIR"):
-            self.assertEqual(got[key], "False", key)
-        for key in ("screen", "send", "Unsupported"):
-            self.assertEqual(got[key], "True", key)
+        for client in ("hermes", "openclaw"):
+            ran = _run(stdin=script, env={**common, "PH_CLIENT": client})
+            self.assertEqual(ran.returncode, 0, ran.stderr)
+            got = dict(line.split() for line in ran.stdout.splitlines() if line.strip())
+            for key in ("Path", "importlib", "transport", "hashlib", "time", "AGENT_WORKSPACE", "CORE_DIR"):
+                self.assertEqual(got[key], "False", f"{client}: {key}")
+            for key in ("screen", "send", "Unsupported"):
+                self.assertEqual(got[key], "True", f"{client}: {key}")
 
         plain = _run(stdin=script, env={**common, "PH_CLIENT": ""})
         self.assertEqual(plain.returncode, 0, plain.stderr)
